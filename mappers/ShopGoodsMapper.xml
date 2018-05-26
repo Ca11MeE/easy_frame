@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper>
+    <select id="findGoodsList">
+        SELECT
+        assg.id,
+        assg.name,
+        FORMAT((assg.original_price / 100),2) AS minPrice,
+        CONCAT('http://shop-img.agymall.com/shopGoods/Img/',asgi.`image_url`) AS pic
+        FROM agy_shop_store_goods assg
+        LEFT JOIN
+        agy_shop_goods_image asgi
+        ON asgi.`goods_id`=assg.`id`
+        WHERE
+        asgi.`type`='MAINIMG'
+        AND
+        assg.`is_del`='0'
+        AND
+        asgi.`is_del`='0'
+    </select>
+
+    <select id="findGoodDetail">
+        SELECT
+  GROUP_CONCAT(
+    CONCAT(
+      'http://shop-img.agymall.com/shopGoods/Img/',
+      asgi.`image_url`
+    )
+  ) as imgs,
+  assg.`name`,
+  FORMAT((assg.`original_price` / 100),2) as original_price,
+  FORMAT((assg.`present_price` / 100),2) as present_price,
+  FORMAT((assg.`stock_sum` / 100),2) as stock_sum
+FROM
+  agy_shop_store_goods assg
+  LEFT JOIN agy_shop_goods_image asgi
+    ON asgi.`goods_id` = assg.`id`
+WHERE assg.id = '%s'
+  AND asgi.`type` = 'GOODSIMG'
+  AND assg.`is_del` = '0'
+  AND asgi.`is_del` = '0'
+GROUP BY assg.id
+    </select>
+    <select id="findGoodIntroduction">
+        select introduction from agy_shop_store_goods where id='%s'
+    </select>
+</mapper>
