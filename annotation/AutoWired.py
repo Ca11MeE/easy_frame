@@ -11,7 +11,7 @@ def AutoWired(self,clz):
         return f
     return wn
 
-@AutoWired(1,2)
+@AutoWired(6,6)
 def a(aa,bb):
     print('result:',aa,bb)
 
