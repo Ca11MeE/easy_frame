@@ -5,15 +5,15 @@
 '''
 定义修饰器
 '''
-def Wired(clz,a_w_list=[]):
-    print(locals())
+def Wired(clz,a_w_list=[],g):
+    # print(locals())
     # 注入实例
     def wn(f):
         # print(len(args))
         def inner_function(*args,**dic_args):
             # 获取数组
-            print(args)
-            print(dic_args)
+            # print(args)
+            # print(dic_args)
             if a_w_list is not None and 0<len(a_w_list):
                 # 装饰器参数查找赋值
                 a_name=a_w_list
@@ -34,8 +34,10 @@ def Wired(clz,a_w_list=[]):
             # for a in arg:
             #     print(id(a))
             for index in range(len(a_name)):
-                globals()[a_name[index]]=clz[index]()
+                # globals()[a_name[index]]=clz[index]()
+                g[a_name[index]]=clz[index]()
             # return arg
+            return f()
         return inner_function
         # print("解释器参数a:"+str(self))
         # print("解释器参数b:"+str(clz))
