@@ -23,7 +23,7 @@ class Mapper:
         self.sortTags(DOMTree, 'delete')
         self.sortTags(DOMTree, 'insert')
         self.sortTags(DOMTree, 'update')
-        print(self._data)
+        # print(self._data)
 
     def getTree(self):
         return self._data

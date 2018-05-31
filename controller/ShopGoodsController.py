@@ -8,6 +8,7 @@ class ShopGoodsController:
     def __init__(self):
 
         self.cursor=mysql.getDbObj(mysql.project_path+'/mappers/ShopGoodsMapper.xml')
+        self.head_title_cursor = mysql.getDbObj(mysql.project_path + '/mappers/HeadTitle.xml')
 
 
     def findGoodsList(self,page,pageSize):
@@ -22,6 +23,11 @@ class ShopGoodsController:
     def findGoodIntroduction(self,id):
         return self.cursor.exeSQL('findGoodIntroduction',args=(id),pageInfo=None)
 
+    def getHeadTitle(self):
+        data = self.head_title_cursor.exeSQL(methodName='findHeadTitle', pageInfo=None)
+        result = {}
+        result['tabs'] = data
+        return result
 
 # if '__main__'==__name__:
 #     print('加载数据库模块')

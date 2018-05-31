@@ -5,9 +5,8 @@
 '''
 定义修饰器
 '''
-
-
 def Wired(clz,a_w_list=[]):
+    print(locals())
     # 注入实例
     def wn(f):
         # print(len(args))
@@ -44,20 +43,21 @@ def Wired(clz,a_w_list=[]):
 
     return wn
 
-def AutoWired(obj_obj):
+def AutoWired(obj_obj,g):
     # 前期准备
     clz=[]
     a_w_list=[]
     for key in obj_obj.keys():
         a_w_list.append(key)
-        clz=obj_obj[key]
+        clz.append(obj_obj[key])
+    # print(globals())
     # 注入实例
     def wn(f):
         # print(len(args))
         def inner_function(*args,**dic_args):
             # 获取数组
-            print(args)
-            print(dic_args)
+            # print(args)
+            # print(dic_args)
             if a_w_list is not None and 0<len(a_w_list):
                 # 装饰器参数查找赋值
                 a_name=a_w_list
@@ -79,7 +79,11 @@ def AutoWired(obj_obj):
             #     print(id(a))
             for index in range(len(a_name)):
                 globals()[a_name[index]]=clz[index]()
+                print(str(a_name[index]),"注入"+str(clz[index]))
+                g[a_name[index]] = clz[index]()
             # return arg
+            # print(globals())
+            return f()
         return inner_function
         # print("解释器参数a:"+str(self))
         # print("解释器参数b:"+str(clz))
@@ -87,6 +91,12 @@ def AutoWired(obj_obj):
 
     return wn
 
+def get_obj(name):
+    print(globals())
+    try:
+        return globals()[name]
+    except:
+        return None;
 
 # # @AutoWired(6,6)
 # @AutoWired([A,B,C,D,E],a_w_list=['AA','BB','CC','DD','EE'])
