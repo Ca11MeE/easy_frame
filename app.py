@@ -5,6 +5,7 @@ from flask import Flask
 from flask import jsonify
 from flask import request
 import mysql
+# from controller import ShopGoodsController
 from mysql import Pool
 from annotation import AutoWired
 from properties import IOCProp
@@ -17,8 +18,8 @@ obj_list = IOCProp.obj_list
 _SGCobj=None
 
 # 注入对象
-# @AutoWired.Wired([ShopGoodsController.ShopGoodsController],a_w_list=['_SGCobj'])
-@AutoWired.AutoWired(obj_list,globals())
+# @AutoWired.Wired([ShopGoodsController.ShopGoodsController],a_w_list=['_SGCobj'],g=globals())
+@AutoWired.AutoWired(obj_list,g=globals())
 def inject_obj():
     # for name in obj_list.keys():
     #     globals()[name]=AutoWired.get_obj(name)
