@@ -78,7 +78,7 @@ def AutoWired(obj_obj,g):
             # for a in arg:
             #     print(id(a))
             for index in range(len(a_name)):
-                globals()[a_name[index]]=clz[index]()
+                # globals()[a_name[index]]=clz[index]()
                 print(str(a_name[index]),"注入"+str(clz[index]))
                 g[a_name[index]] = clz[index]()
             # return arg
