@@ -4,6 +4,15 @@ from mysql import Pool, Connection
 import os
 import re
 
+"""
+后续开发;
+1.远程读取mapperxm
+2.语句对象定时更新暂定为本地xml文件增量binlog更新,后续开发远程增量更新(流程未定)
+    2.1本地binlog处理对比
+    2.2远程binlog处理对比
+3.binlog生成算法以及对比算法以及增量写入
+"""
+
 # 定义项目路径
 project_path = os.path.dirname(os.path.dirname(__file__))
 
@@ -159,6 +168,17 @@ class curObj:
     # 定义插入更新器方法
     def insertToUpdateDispacther(self, millionSecond):
         if isinstance(millionSecond,int):
+            # 此处为增量更新代码
+            '''
+            临时思路
+            1.设定定时间隔
+            2.传入当前语句对象
+            3.内部压缩保存binlog
+            4.定时完毕重新获取语句,获取新语句对象binlog
+            5.对比binlog
+                5.1若更新后binog无差异则不作处理
+                5.2若存在差异,替换语句对象
+            '''
             pass
         else:
             try:
