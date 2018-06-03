@@ -1,17 +1,27 @@
 import pymysql
 import reader
-from mysql import Pool,Connection
+from mysql import Pool, Connection
 import os
 import re
+
+"""
+后续开发;
+1.远程读取mapperxm
+2.语句对象定时更新暂定为本地xml文件增量binlog更新,后续开发远程增量更新(流程未定)
+    2.1本地binlog处理对比
+    2.2远程binlog处理对比
+3.binlog生成算法以及对比算法以及增量写入
+"""
 
 # 定义项目路径
 project_path = os.path.dirname(os.path.dirname(__file__))
 
+
 class curObj:
     _page = False
-    _db=None
-    _cursor=None
-    _conn=None
+    _db = None
+    _cursor = None
+    _conn = None
 
     def __init__(self, db, path, poolFlag):
         self._poolFlag = poolFlag
@@ -61,7 +71,7 @@ class curObj:
     #     self._cursor = self._db.cursor()
 
     # 获取sql语句(包含处理)
-    def getSQL(self, methodName,pageInfo, args=()):
+    def getSQL(self, methodName, pageInfo, args=()):
         self.checkConn()
         # 单独连接实例化
         # 初始化指针
@@ -87,7 +97,7 @@ class curObj:
         # 判断是否骨架拼接
         if args is not None and 0 < len(args):
             _sql = _sql % args[:]
-        __sql=re.sub('\\s+',' ',_sql)
+        __sql = re.sub('\\s+', ' ', _sql)
         print(__sql)
         return __sql
 
@@ -108,7 +118,7 @@ class curObj:
             if pageInfo is not None and type(pageInfo) is type({}):
                 _sql = self.getSQL(methodName=methodName, pageInfo=pageInfo, args=args)
             else:
-                _sql = self.getSQL(methodName=methodName, args=args,pageInfo=None)
+                _sql = self.getSQL(methodName=methodName, args=args, pageInfo=None)
         except Exception as ex:
             print(ex)
             return result
@@ -149,11 +159,32 @@ class curObj:
             # 为连接池定义
             pool.closeConn(self._conn)
             # 归还连接后清除指针
-            self._db=None
-            self._conn=None
+            self._db = None
+            self._conn = None
         else:
             # 为单独连接定义
             self._db.close()
+
+    # 定义插入更新器方法
+    def insertToUpdateDispacther(self, millionSecond):
+        if isinstance(millionSecond,int):
+            # 此处为增量更新代码
+            '''
+            临时思路
+            1.设定定时间隔
+            2.传入当前语句对象
+            3.内部压缩保存binlog
+            4.定时完毕重新获取语句,获取新语句对象binlog
+            5.对比binlog
+                5.1若更新后binog无差异则不作处理
+                5.2若存在差异,替换语句对象
+            '''
+            pass
+        else:
+            try:
+                time=int(millionSecond)
+            except Exception as e:
+                print(e)
 
 
 # 整理结果集并返回
@@ -194,3 +225,17 @@ def getDbObj(path):
     if 0 >= pool.size():
         pool.initPool(5, Connection.Connection)
     return curObj(pool, path, True)
+
+
+def setObjUpdateRound(obj, milllionSecond):
+    if isinstance(obj,curObj):
+        obj.insertToUpdateDispacther(milllionSecond)
+    else:
+        raise Exception('类型错误!!!!')
+
+
+if '__main__' == __name__:
+    print('加载数据库模块')
+    pool = Pool.Pool()
+    print('加载完毕')
+    setObjUpdateRound(getDbObj(project_path+'/mappers/ShopGoodsMapper.xml'), '2')
