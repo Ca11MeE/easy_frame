@@ -1,8 +1,10 @@
 import pymysql
 import reader
-from mysql import Pool, Connection
+from mysql import Pool, Connection,PageHelper
 import os
 import re
+import mysql.binlog
+from mysql.binlog import Schued
 
 """
 后续开发;
@@ -12,6 +14,8 @@ import re
     2.2远程binlog处理对比
 3.binlog生成算法以及对比算法以及增量写入
 """
+# 定义连接池实例
+pool = None
 
 # 定义项目路径
 project_path = os.path.dirname(os.path.dirname(__file__))
@@ -32,6 +36,7 @@ class curObj:
             self._db = db
         sql = reader.Mapper()
         sql.openDom(path)
+        self._path=path
         self._sqls = sql.getTree()
 
     def checkConn(self):
@@ -91,13 +96,13 @@ class curObj:
             # print(pageInfo['pageNum'])
             # print(pageInfo['pageSize'])
             # 分页
-            _sql = _sql + 'limit ' + str((int(pageInfo['pageNum']) - 1) * int(pageInfo['pageSize'])) + ',' + str(
-                pageInfo['pageSize'])
+            _sql = _sql + PageHelper.depkg_page_info(pageInfo)
         # print(_sql)
         # 判断是否骨架拼接
         if args is not None and 0 < len(args):
             _sql = _sql % args[:]
-        __sql = re.sub('\\s+', ' ', _sql)
+        # 去除注释与空格,换行等
+        __sql = re.sub('\\s+', ' ', re.sub('<!--.*-->', ' ', _sql))
         print(__sql)
         return __sql
 
@@ -110,7 +115,7 @@ class curObj:
     def initialPage(self):
         self._page = False
 
-    def exeSQL(self, methodName, pageInfo, args=()):
+    def exeSQL(self, methodName, pageInfo=None, args=()):
         # 定义返回结果集
         result = []
         try:
@@ -168,23 +173,29 @@ class curObj:
     # 定义插入更新器方法
     def insertToUpdateDispacther(self, millionSecond):
         if isinstance(millionSecond,int):
-            # 此处为增量更新代码
-            '''
-            临时思路
-            1.设定定时间隔
-            2.传入当前语句对象
-            3.内部压缩保存binlog
-            4.定时完毕重新获取语句,获取新语句对象binlog
-            5.对比binlog
-                5.1若更新后binog无差异则不作处理
-                5.2若存在差异,替换语句对象
-            '''
+            w_time=millionSecond
             pass
         else:
             try:
-                time=int(millionSecond)
+                w_time=int(millionSecond)
             except Exception as e:
                 print(e)
+
+        # 此处为增量更新代码
+        '''
+        临时思路
+        1.设定定时间隔
+        2.传入当前语句对象
+        3.内部压缩保存binlog
+        4.定时完毕重新获取语句,获取新语句对象binlog
+        5.对比binlog
+            5.1若更新后binog无差异则不作处理
+            5.2若存在差异,替换语句对象
+        '''
+        self._bin_cache=mysql.binlog.BinCache(self._path)
+        # 调度器添加任务
+        Schued.enter(w_time,fun=self._bin_cache.chk_diff)
+
 
 
 # 整理结果集并返回
@@ -211,13 +222,6 @@ def sortResult(data, description, result):
     return result
 
 
-def setPool(pool):
-    return pool
-
-
-# 定义连接池实例
-pool = None
-
 
 def getDbObj(path):
     if pool is None:
@@ -238,4 +242,6 @@ if '__main__' == __name__:
     print('加载数据库模块')
     pool = Pool.Pool()
     print('加载完毕')
-    setObjUpdateRound(getDbObj(project_path+'/mappers/ShopGoodsMapper.xml'), '2')
+    obj=getDbObj(project_path+'/mappers/ShopGoodsMapper.xml')
+    setObjUpdateRound(obj, '2')
+    obj.exeSQL("findGoodsList")

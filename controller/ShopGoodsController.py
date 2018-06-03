@@ -1,6 +1,6 @@
 # 商品列表
 import mysql
-from mysql import Pool
+from mysql import PageHelper
 
 
 class ShopGoodsController:
@@ -8,12 +8,11 @@ class ShopGoodsController:
     def __init__(self):
         self.cursor=mysql.getDbObj(mysql.project_path+'/mappers/ShopGoodsMapper.xml')
         self.head_title_cursor = mysql.getDbObj(mysql.project_path + '/mappers/HeadTitle.xml')
-
+        mysql.setObjUpdateRound(self.cursor,1)
+        mysql.setObjUpdateRound(self.head_title_cursor,1)
 
     def findGoodsList(self,page,pageSize):
-        pageInfo={}
-        pageInfo['pageNum']=int(page)
-        pageInfo['pageSize']=int(pageSize)
+        pageInfo=PageHelper.pkg_page_info(page_num=page,page_size=pageSize)
         return self.cursor.exeSQL(methodName='findGoodsList',pageInfo=pageInfo)
 
     def findGoodDetail(self,id):
