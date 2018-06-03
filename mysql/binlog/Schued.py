@@ -17,22 +17,30 @@ class sech_obj:
         _sched.every(self.__delay).seconds.do(self.run_target)
         print(_sched.jobs)
 
-    def run(self):
-        while True:
-            Timer(1, _sched.run_pending).start()
-            time.sleep(1)
-
     def run_target(self):
-        self.__fun
+        print("222")
+        return self.__fun
 
 
-def test():
-    print("111")
+def test(str):
+    print(str)
+    return test
 
 
 # _sched.run_pending()
 
-s=sech_obj(fun=test(),delay=1)
+s=sech_obj(fun=test("111"),delay=1)
 s.enter()
-s.run()
+s2=sech_obj(fun=test("222"),delay=2)
+s2.enter()
+s3=sech_obj(fun=test("333"),delay=3)
+s3.enter()
 
+
+def run_always():
+    while True:
+        _sched.run_all()
+        time.sleep(1)
+
+
+run_always()
