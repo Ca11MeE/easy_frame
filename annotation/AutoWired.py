@@ -1,12 +1,8 @@
 # 自动注入修饰器
-
-
 '''
-定义修饰器
+显式参数注入
 '''
-
-
-def Wired(clz, g, a_w_list=[]):
+def InnerWired(clz, g, a_w_list=[]):
     # print(locals())
     # 注入实例
     def wn(f):
@@ -47,8 +43,10 @@ def Wired(clz, g, a_w_list=[]):
 
     return wn
 
-
-def AutoWired(obj_obj, g):
+'''
+自定义参数列表注入
+'''
+def OuterWired(obj_obj, g):
     # 前期准备
     clz = []
     a_w_list = []
@@ -105,15 +103,3 @@ def get_obj(name):
         return globals()[name]
     except:
         return None;
-
-# # @AutoWired(6,6)
-# @AutoWired([A,B,C,D,E],a_w_list=['AA','BB','CC','DD','EE'])
-# def a():
-#     pass
-#
-#
-# # print(globals())
-# a()
-# # print(globals())
-#
-# print(CC)
