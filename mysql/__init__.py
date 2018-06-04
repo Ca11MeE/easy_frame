@@ -1,6 +1,6 @@
 import pymysql
 import reader
-from mysql import Pool, Connection,PageHelper
+from mysql import Pool, Connection, PageHelper
 import os
 import re
 import mysql.binlog
@@ -20,14 +20,17 @@ pool = None
 # 定义项目路径
 project_path = os.path.dirname(os.path.dirname(__file__))
 
+
 class curObj:
     _page = False
     _db = None
     _cursor = None
     _conn = None
+    _debug = False
     sql = reader.Mapper()
 
-    def __init__(self, db, path, poolFlag):
+    def __init__(self, db, path, poolFlag, debug):
+        self._debug = debug
         self._poolFlag = poolFlag
         if poolFlag:
             # 连接池实例化
@@ -35,7 +38,7 @@ class curObj:
         else:
             self._db = db
         self.sql.openDom(path)
-        self._path=path
+        self._path = path
         self._sqls = self.sql.getTree()
 
     def refreash_sqls(self):
@@ -109,7 +112,6 @@ class curObj:
             _sql = _sql % args[:]
         # 去除注释与空格,换行等
         __sql = re.sub('\\s+', ' ', re.sub('<!--.*-->', ' ', _sql))
-        print(__sql)
         return __sql
 
     # 设定分页信息
@@ -162,6 +164,9 @@ class curObj:
         # print(result)
         # 关闭连接
         self.close()
+        # 调试模式语句执行信息打印
+        if self._debug:
+            print_debug(methodName=methodName, args=args, sql=_sql, result=result)
         return result
 
     def close(self):
@@ -178,12 +183,12 @@ class curObj:
 
     # 定义插入更新器方法
     def insertToUpdateDispacther(self, millionSecond):
-        if isinstance(millionSecond,int):
-            w_time=millionSecond
+        if isinstance(millionSecond, int):
+            w_time = millionSecond
             pass
         else:
             try:
-                w_time=int(millionSecond)
+                w_time = int(millionSecond)
             except Exception as e:
                 print(e)
 
@@ -198,12 +203,11 @@ class curObj:
             5.1若更新后binog无差异则不作处理
             5.2若存在差异,替换语句对象
         '''
-        self._bin_cache=mysql.binlog.BinCache(self._path)
+        self._bin_cache = mysql.binlog.BinCache(self._path)
         # 添加变更处理
         self._bin_cache.set_false_fun(self.refreash_sqls)
         # 调度器添加任务
-        Schued.sech_obj(fun=self._bin_cache.chk_diff,delay=w_time).enter()
-
+        Schued.sech_obj(fun=self._bin_cache.chk_diff, delay=w_time).enter()
 
 
 # 整理结果集并返回
@@ -230,20 +234,31 @@ def sortResult(data, description, result):
     return result
 
 
-
-def getDbObj(path):
+def getDbObj(path, debug=False):
     if pool is None:
         raise Exception('连接池未定义')
     if 0 >= pool.size():
         pool.initPool(5, Connection.Connection)
-    return curObj(pool, path, True)
+    return curObj(pool, path, True, debug)
 
 
 def setObjUpdateRound(obj, milllionSecond):
-    if isinstance(obj,curObj):
+    if isinstance(obj, curObj):
         obj.insertToUpdateDispacther(milllionSecond)
     else:
         raise Exception('类型错误!!!!')
+
+# 调试模式下的打印
+def print_debug(methodName, sql, args, result):
+    print('METHOD:==>' + methodName)
+    print('SQL:=====>' + sql)
+    print('PARAMS:==>' + str(args))
+    # 拿出列名
+    print('ROWS:====>' + str(list(result[0].keys())))
+    print('RESULT:==>' + str(list(result[0].values())))
+    for r in result[1:]:
+        print('=========>' + str(list(r.values())))
+
 
 import mysql.remote as remote
 
@@ -251,13 +266,14 @@ if '__main__' == __name__:
     print('加载数据库模块')
     pool = Pool.Pool()
     print('加载完毕')
-    obj=getDbObj(project_path+'/mappers/ShopGoodsMapper.xml')
+    obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
     # setObjUpdateRound(obj, '2')
     obj.exeSQL("findGoodsList")
 
-    remote_cell=remote.getCell('ShopGoodsMapper.xml', remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
+    remote_cell = remote.getCell('ShopGoodsMapper.xml',
+                                 remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
     remote_cell.reload_file_round(1)
-    obj1=getDbObj(remote_cell.getPath())
+    obj1 = getDbObj(remote_cell.getPath(), debug=True)
     obj1.insertToUpdateDispacther(3)
     obj1.exeSQL("findGoodsList")
 

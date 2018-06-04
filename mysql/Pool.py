@@ -15,7 +15,8 @@ class Pool():
             _pool.append(conn)
         self._pool= _pool
         self._size=num
-        print(_pool)
+        # print(_pool)
+        # print(self)
 
     def __init__(self):
         print('初始化连接池')
@@ -27,7 +28,9 @@ class Pool():
             currConn=__pool.pop(0)
             if currConn.testConn():
                 # 连接有效
-                print('连接有效')
+                # print('连接有效')
+                # 不作处理
+                pass
             else:
                 print('连接无效')
                 currConn.reConn()
@@ -40,9 +43,9 @@ class Pool():
 
     # 定义归还连接
     def closeConn(self,conn):
-        print(self._pool)
+        # print(self._pool)
         self._pool.append(conn)
-        print(self._pool)
+        # print(self._pool)
 
     # 定义查询连接池连接数
     def size(self):
