@@ -24,8 +24,7 @@ def inject_obj():
     pass
 
 
-#
-# # 获取顶部标题栏
+# 获取顶部标题栏
 @_app.route('/tabs', methods=['GET'])
 @annotation.ResponseBody()
 def hello():
@@ -62,6 +61,7 @@ if '__main__' == __name__:
     # print('加载数据库模块')
     mysql.pool = Pool.Pool()
     # print('加载完毕')
+    # 运行方法，注入实例
     inject_obj()
     _app.run(host='0.0.0.0', port=443, ssl_context=(mysql.project_path + '/sslContext/1_zxyzt.cn_bundle.crt', mysql.project_path + '/sslContext/2_zxyzt.cn.key'))
     # _app.run(host='127.0.0.1', port=443, ssl_context=(mysql.project_path + '/sslContext/1_zxyzt.cn_bundle.crt', mysql.project_path + '/sslContext/2_zxyzt.cn.key'))
