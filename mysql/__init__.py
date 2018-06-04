@@ -20,12 +20,12 @@ pool = None
 # 定义项目路径
 project_path = os.path.dirname(os.path.dirname(__file__))
 
-
 class curObj:
     _page = False
     _db = None
     _cursor = None
     _conn = None
+    sql = reader.Mapper()
 
     def __init__(self, db, path, poolFlag):
         self._poolFlag = poolFlag
@@ -34,10 +34,16 @@ class curObj:
             self._pool = db
         else:
             self._db = db
-        sql = reader.Mapper()
-        sql.openDom(path)
+        self.sql.openDom(path)
         self._path=path
-        self._sqls = sql.getTree()
+        self._sqls = self.sql.getTree()
+
+    def refreash_sqls(self):
+        global sql
+        print(self._sqls)
+        self.sql.openDom(self._path)
+        self._sqls = self.sql.getTree()
+        print(self._sqls)
 
     def checkConn(self):
         # if self._pool is not None:
@@ -193,8 +199,10 @@ class curObj:
             5.2若存在差异,替换语句对象
         '''
         self._bin_cache=mysql.binlog.BinCache(self._path)
+        # 添加变更处理
+        self._bin_cache.set_false_fun(self.refreash_sqls)
         # 调度器添加任务
-        Schued.enter(w_time,fun=self._bin_cache.chk_diff)
+        Schued.sech_obj(fun=self._bin_cache.chk_diff,delay=w_time).enter()
 
 
 
