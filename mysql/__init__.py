@@ -245,11 +245,20 @@ def setObjUpdateRound(obj, milllionSecond):
     else:
         raise Exception('类型错误!!!!')
 
+import mysql.remote as remote
 
 if '__main__' == __name__:
     print('加载数据库模块')
     pool = Pool.Pool()
     print('加载完毕')
     obj=getDbObj(project_path+'/mappers/ShopGoodsMapper.xml')
-    setObjUpdateRound(obj, '2')
+    # setObjUpdateRound(obj, '2')
     obj.exeSQL("findGoodsList")
+
+    remote_cell=remote.getCell('ShopGoodsMapper.xml', remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
+    remote_cell.reload_file_round(1)
+    obj1=getDbObj(remote_cell.getPath())
+    obj1.insertToUpdateDispacther(3)
+    obj1.exeSQL("findGoodsList")
+
+    # a=obj.exeSQL(methodName='findGoodIntroduction', args=('111'), pageInfo=None)

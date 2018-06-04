@@ -14,7 +14,7 @@ class sech_obj:
     def enter(self):
         global _scheds
         # print(type(fun))
-        _sched.every(self.__delay).second.do(self.__fun)
+        _sched.every(self.__delay).seconds.do(self.__fun)
 
     def run_target(self):
         return self.__fun
