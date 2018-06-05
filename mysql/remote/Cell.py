@@ -1,5 +1,5 @@
 from urllib import request
-import uuid,os,mysql
+import uuid,os,mysql,time
 import mysql.binlog.Schued as schued
 
 
@@ -16,11 +16,18 @@ class cell():
             pass
         else:
             os.makedirs(self._file_path)
-        # 下载远程文件
-        response=request.urlretrieve(url=remote_path,filename=self._file_path+'/'+self._file_name)
-        print('加载远程mapper：'+response[0])
-        # 放置路径
-        self._abs_path=response[0]
+        while True:
+            # 下载远程文件
+            try:
+                response=request.urlretrieve(url=remote_path,filename=self._file_path+'/'+self._file_name)
+                print('加载远程mapper：' + response[0])
+                # 放置路径
+                self._abs_path = response[0]
+                break
+            except:
+                print('连接远程计算机失败,请检查连接,3秒后重试('+str(id(self))+')')
+                time.sleep(3)
+
 
     # 重新加载文件
     def reload_file(self):
