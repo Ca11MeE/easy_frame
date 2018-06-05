@@ -1,5 +1,5 @@
-<<<<<<< HEAD
-#python-web-service
-=======
-# easy_frame
->>>>>>> 0d28c4346814defbadbfe5d2ef66838f16aba6fc
+运行环境:
+python3.6
+所需模块:
+flask
+pymysql
