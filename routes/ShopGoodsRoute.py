@@ -1,15 +1,16 @@
 # coding: utf-8
 # 启动类
-from flask import Flask,jsonify,request
-import mysql
+from flask import request,Blueprint
 import annotation
+import boot
 # from controller import ShopGoodsController
-from mysql import Pool
 from annotation import AutoWired
 from properties import IOCProp
 
-_app = Flask(__name__)
-_app.config['JSON_AS_ASCII'] = False
+# 此处定义蓝图前缀
+url_prefix=None
+
+app = Blueprint('app',__name__,url_prefix=url_prefix)
 
 obj_list = IOCProp.obj_list
 
@@ -23,9 +24,10 @@ def inject_obj():
     #     globals()[name]=AutoWired.get_obj(name)
     pass
 
+inject_obj()
 
 # 获取顶部标题栏
-@_app.route('/tabs', methods=['GET'])
+@app.route('/tabs', methods=['GET'])
 @annotation.ResponseBody()
 def hello():
     result = _SGCobj.getHeadTitle()
@@ -33,7 +35,7 @@ def hello():
 
 
 # 获取商品列表
-@_app.route('/shop/goods/list', methods=['post'])
+@app.route('/shop/goods/list', methods=['post'])
 @annotation.ResponseBody()
 def getShopGoodsList():
     result = _SGCobj.findGoodsList(request.json['page'], request.json['pageSize'])
@@ -41,7 +43,7 @@ def getShopGoodsList():
 
 
 # 获取商品详细信息
-@_app.route('/shop/goods/detail', methods=['post'])
+@app.route('/shop/goods/detail', methods=['post'])
 @annotation.ResponseBody()
 def getGoodDetail():
     result = _SGCobj.findGoodDetail(request.json['id'])
@@ -49,22 +51,8 @@ def getGoodDetail():
 
 
 # 获取商品描述
-@_app.route('/shop/goods/introduction', methods=['post'])
+@app.route('/shop/goods/introduction', methods=['post'])
 @annotation.ResponseBody()
 def getGoodIntroduction():
     result = _SGCobj.findGoodIntroduction(request.json['id'])
     return result
-
-
-# 启动服务器
-if '__main__' == __name__:
-    # print('加载数据库模块')
-    mysql.pool = Pool.Pool()
-    # print('加载完毕')
-    # 运行方法，注入实例
-    inject_obj()
-    _app.run(host='0.0.0.0', port=443, ssl_context=(mysql.project_path + '/sslContext/1_zxyzt.cn_bundle.crt', mysql.project_path + '/sslContext/2_zxyzt.cn.key'))
-    # _app.run(host='127.0.0.1', port=443, ssl_context=(mysql.project_path + '/sslContext/1_zxyzt.cn_bundle.crt', mysql.project_path + '/sslContext/2_zxyzt.cn.key'))
-
-
-    # _app.run(host='0.0.0.0',port=443,ssl_context='adhoc')

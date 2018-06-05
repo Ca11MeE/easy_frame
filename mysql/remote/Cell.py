@@ -3,6 +3,16 @@ import uuid,os,mysql,time
 import mysql.binlog.Schued as schued
 
 
+# 需要远程连接加上即可
+# import mysql.remote as remote
+
+"""
+远程xml于本项目的映射实例模板
+demo:
+remote_cell = remote.getCell('ShopGoodsMapper.xml', remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
+obj1 = getDbObj(remote_cell.getPath(), debug=True)
+"""
+
 class cell():
 
     def __init__(self,file_name='',remote_path=''):

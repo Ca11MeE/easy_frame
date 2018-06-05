@@ -13,6 +13,12 @@ from mysql.binlog import Schued
     (完成)2.2远程binlog处理对比
 3.binlog生成算法以及对比算法以及增量写入
 4.细粒度事务控制
+
+
+单条语句执行demo:
+# obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
+# setObjUpdateRound(obj, '2')
+# obj.exeSQL("findGoodsList")
 """
 # 定义连接池实例
 pool = None
@@ -126,6 +132,14 @@ class curObj:
     def initialPage(self):
         self._page = False
 
+
+
+    """
+    批量语句执行DEMO:
+    # obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
+    # obj.exeSQL_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
+    # obj.exeSQL_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
+    """
     # 批量执行语句(整体版)
     """
     queue_obj中key为方法名,value为参数
@@ -243,6 +257,7 @@ class curObj:
             # 为连接池定义
             pool.closeConn(self._conn)
             # 归还连接后清除指针
+            self._cursor = None
             self._db = None
             self._conn = None
         else:
@@ -326,9 +341,6 @@ def print_debug(methodName, sql, args, result):
     print('RESULT:==>' + str(list(result[0].values())))
     for r in result[1:]:
         print('=========>' + str(list(r.values())))
-
-
-import mysql.remote as remote
 
 if '__main__' == __name__:
     print('加载数据库模块')
