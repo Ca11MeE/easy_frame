@@ -1,22 +1,29 @@
+# coding: utf-8
 import xml.dom.minidom
 
+"""
+xml读取工具
+author:CallMeE
+date:2018-06-01
+"""
+
+
 class Mapper:
+    _data = {}
 
-    _data={}
-
-    def sortTags(self,tree,name):
+    def sortTags(self, tree, name):
         tags = tree.getElementsByTagName(name)
-        data=self._data
+        data = self._data
         for tag in tags:
             val = tag.childNodes[0].data
             attr = tag.getAttribute("id")
             data[attr] = val
 
-    def openDom(self,file):
+    def openDom(self, file):
         # 使用minidom解析器打开 XML 文档
         DOMTree = xml.dom.minidom.parse(file)
         # tags=DOMTree.getElementsByTagName('')
-        tags=DOMTree.documentElement
+        tags = DOMTree.documentElement
         # print(tags)
         # 取出标签(增删查改)
         self.sortTags(DOMTree, 'select')

@@ -1,5 +1,16 @@
+# coding: utf-8
 # 连接包装类
 import pymysql
+
+"""
+mysql连接实例(半成品)
+
+待实现:;
+1.配置文件配置连接属性
+author:CallMeE
+date:2018-06-01
+"""
+
 
 class Connection:
     _host = 'bdm238721578.my3w.com'

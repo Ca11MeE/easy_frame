@@ -1,20 +1,27 @@
+# coding: utf-8
 #  连接
 from mysql import Connection
 
-class Pool():
+"""
+连接池
+author:CallMeE
+date:2018-06-01
+"""
 
-    _size=0
+
+class Pool():
+    _size = 0
 
     # 初始化连接池
     def initPool(self, num, Conn):
         _pool = []
-        self._Conn=Conn
+        self._Conn = Conn
         for item_c in range(num):
             # 遍历定义连接放入连接池
             conn = Conn()
             _pool.append(conn)
-        self._pool= _pool
-        self._size=num
+        self._pool = _pool
+        self._size = num
         # print(_pool)
         # print(self)
 
@@ -23,9 +30,9 @@ class Pool():
 
     # 定义取出连接
     def getConn(self):
-        __pool=self._pool
+        __pool = self._pool
         if 0 < len(__pool):
-            currConn=__pool.pop(0)
+            currConn = __pool.pop(0)
             if currConn.testConn():
                 # 连接有效
                 # print('连接有效')
@@ -42,7 +49,7 @@ class Pool():
             self._pool.append(conn)
 
     # 定义归还连接
-    def closeConn(self,conn):
+    def closeConn(self, conn):
         # print(self._pool)
         self._pool.append(conn)
         # print(self._pool)

@@ -1,3 +1,4 @@
+# coding: utf-8
 import reader
 from mysql import Pool, Connection, PageHelper
 import os
@@ -11,14 +12,21 @@ from mysql.binlog import Schued
 (完成)2.语句对象定时更新暂定为本地xml文件增量binlog更新,后续开发远程增量更新(流程未定)
     (完成)2.1本地binlog处理对比
     (完成)2.2远程binlog处理对比
-3.binlog生成算法以及对比算法以及增量写入
-4.细粒度事务控制
+(半完成)3.binlog生成算法以及对比算法以及增量写入
+(完成)4.细粒度事务控制
+5.配置文件配置连接数
 
 
 单条语句执行demo:
 # obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
 # setObjUpdateRound(obj, '2')
-# obj.exeSQL("findGoodsList")
+# obj.exe_sql("findGoodsList")
+
+批量语句执行DEMO:
+# obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
+# obj.exe_sql_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
+或者
+# obj.exe_sql_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
 """
 # 定义连接池实例
 pool = None
@@ -55,7 +63,7 @@ class curObj:
         self._sqls = self.sql.getTree()
         print(self._sqls)
 
-    def checkConn(self,transaction=False):
+    def check_conn(self,transaction=False):
         # if self._pool is not None:
         #     __conn = self._pool.getConn()
         # else:
@@ -97,7 +105,7 @@ class curObj:
             self._cursor = self._db.cursor()
 
     # 获取sql语句(包含处理)
-    def getSQL(self, methodName, pageInfo, args=()):
+    def get_sql(self, methodName, pageInfo, args=()):
         # 单独连接实例化
         # 判断是否存在子节点
         if methodName not in self._sqls:
@@ -124,22 +132,15 @@ class curObj:
         return __sql
 
     # 设定分页信息
-    def setPage(self, pageNum, pageSize):
+    def set_page(self, pageNum, pageSize):
         self._pageNum = pageNum
         self._pageSize = pageSize
         self._page = True
 
-    def initialPage(self):
+    def initial_page(self):
         self._page = False
 
 
-
-    """
-    批量语句执行DEMO:
-    # obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
-    # obj.exeSQL_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
-    # obj.exeSQL_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
-    """
     # 批量执行语句(整体版)
     """
     queue_obj中key为方法名,value为参数
@@ -147,7 +148,7 @@ class curObj:
     对于一个业务来说,一个sql方法只使用一次(因为有内部数据缓存)
     若其中有重复方法,建议用分割版
     """
-    def exeSQL_obj_queue(self,queue_obj={}):
+    def exe_sql_obj_queue(self,queue_obj={}):
         print(queue_obj)
         methods=list(queue_obj.keys())
         args=list(queue_obj.values())
@@ -158,7 +159,7 @@ class curObj:
     args_queue中存放对应下标方法的参数元组[()]
     若其中包含select无条件参数语句,请用空元组()占位
     """
-    def exeSQL_queue(self,method_queue=[],args_queue=[]):
+    def exe_sql_queue(self,method_queue=[],args_queue=[]):
         # 参数检查
         if 0 >= len(method_queue):
             raise Exception('语句方法为空')
@@ -166,7 +167,7 @@ class curObj:
         if 0 >= len(args_queue):
             raise Exception('语句参数列表为空')
             return
-        self.checkConn()
+        self.check_conn()
         self.set_cursor()
         try:
             # 开启事务
@@ -178,18 +179,21 @@ class curObj:
                 """
                 对于增改查来说,并不需要分页,参数列表是必须的
                 """
-                _sql=self.getSQL(methodName=method,args=args,pageInfo=None)
+                _sql=self.get_sql(methodName=method,args=args,pageInfo=None)
                 print(self._cursor)
                 # 执行sql语句
                 self._cursor.execute(_sql)
+                # 调试模式打印语句
+                if self._debug:
+                    print_debug(methodName=method, args=args, sql=_sql, result=self._cursor.rowcount)
             # 事务提交(pymysql要求除查询外所有语句必须手动提交)
         except Exception as e:
             print(e)
             self._db.rollback()
-            print('事务回滚'+str(self._cursor.rowcount))
+            print('事务回滚'+str(method_queue))
         else:
             self._db.commit()
-            print('事务提交' + str(self._cursor.rowcount))
+            print('事务提交' + str(method_queue))
 
         # 关闭连接
         self.close()
@@ -197,21 +201,21 @@ class curObj:
 
     # 执行单条语句
     # 防报错参数设定默认值
-    def exeSQL(self, methodName='', pageInfo=None, args=()):
+    def exe_sql(self, methodName='', pageInfo=None, args=()):
         # 参数检查
         if 0>=len(re.sub('\s+','',methodName)):
             raise Exception('语句方法为空')
             return
-        self.checkConn()
+        self.check_conn()
         self.set_cursor()
         # 定义返回结果集
         result = []
         try:
             # print(pageInfo)
             if pageInfo is not None and type(pageInfo) is type({}):
-                _sql = self.getSQL(methodName=methodName, pageInfo=pageInfo, args=args)
+                _sql = self.get_sql(methodName=methodName, pageInfo=pageInfo, args=args)
             else:
-                _sql = self.getSQL(methodName=methodName, args=args, pageInfo=None)
+                _sql = self.get_sql(methodName=methodName, args=args, pageInfo=None)
         except Exception as ex:
             print(ex)
             return result
@@ -224,7 +228,7 @@ class curObj:
                 self._db.commit()
             else:
                 # 回复分页状态
-                self.initialPage()
+                self.initial_page()
         except Exception as e:
             self._db.commit()
             print("执行出错,错误信息为:", e)
@@ -239,7 +243,7 @@ class curObj:
 
         # print(description)
 
-        result = sortResult(data, description, result)
+        result = sort_result(data, description, result)
 
         # print(data)
         # print(result)
@@ -265,7 +269,7 @@ class curObj:
             self._db.close()
 
     # 定义插入更新器方法
-    def insertToUpdateDispacther(self, millionSecond):
+    def insert_to_update_dispacther(self, millionSecond):
         if isinstance(millionSecond, int):
             w_time = millionSecond
             pass
@@ -294,7 +298,7 @@ class curObj:
 
 
 # 整理结果集并返回
-def sortResult(data, description, result):
+def sort_result(data, description, result):
     for index in range(len(data)):
         item = data[index]
         r_item = {}
@@ -321,13 +325,15 @@ def getDbObj(path, debug=False):
     if pool is None:
         raise Exception('连接池未定义')
     if 0 >= pool.size():
+        # 初始5个连接
+        # 配置属性生命周期过短,拟用__import__导入减轻内存废址
         pool.initPool(5, Connection.Connection)
     return curObj(pool, path, True, debug)
 
 
 def setObjUpdateRound(obj, milllionSecond):
     if isinstance(obj, curObj):
-        obj.insertToUpdateDispacther(milllionSecond)
+        obj.insert_to_update_dispacther(milllionSecond)
     else:
         raise Exception('类型错误!!!!')
 
@@ -347,17 +353,17 @@ if '__main__' == __name__:
     pool = Pool.Pool()
     print('加载完毕')
     # obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
-    # obj.exeSQL_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
-    # obj.exeSQL_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
+    # obj.exe_sql_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
+    # obj.exe_sql_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
     # obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
     # # setObjUpdateRound(obj, '2')
-    # obj.exeSQL("findGoodsList")
+    # obj.exe_sql("findGoodsList")
     #
     # remote_cell = remote.getCell('ShopGoodsMapper.xml',
     #                              remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
     # remote_cell.reload_file_round(1)
     # obj1 = getDbObj(remote_cell.getPath(), debug=True)
-    # obj1.insertToUpdateDispacther(3)
-    # obj1.exeSQL("findGoodsList")
+    # obj1.insert_to_update_dispacther(3)
+    # obj1.exe_sql("findGoodsList")
 
-    # a=obj.exeSQL(methodName='findGoodIntroduction', args=('111'), pageInfo=None)
+    # a=obj.exe_sql(methodName='findGoodIntroduction', args=('111'), pageInfo=None)

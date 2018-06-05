@@ -1,21 +1,39 @@
+# coding: utf-8
 import re
 
+"""
+sql分页工具(自带正则寻值)
+
+(不区分大小写)
+*num* ----->页码
+*size* ------>页容
+
+待实现:
+1.参照mybatis的pagehelper
+
+
+author:CallMeE
+date:2018-06-01
+"""
+
+
 # 打包分页信息
-def pkg_page_info(page_num=1, page_size=1,page_model=[]):
+def pkg_page_info(page_num=1, page_size=1, page_model=[]):
     if 0 >= len(page_model):
         # print(locals())
         return locals()
     else:
-        page_info={}
+        page_info = {}
         # 选取对应key写入数据
         for key in page_model:
             # print(key)
-            if re.match('.*[nN][uU][mM].*',string=key):
-                page_info[key]=page_num
-            if re.match('.*[sS][iI][zZ][eE].*',string=key):
-                page_info[key]=page_size
+            if re.match('.*[nN][uU][mM].*', string=key):
+                page_info[key] = page_num
+            if re.match('.*[sS][iI][zZ][eE].*', string=key):
+                page_info[key] = page_size
         # print(page_info)
         return page_info
+
 
 # 解包分页信息
 def depkg_page_info(page_info):
@@ -25,4 +43,4 @@ def depkg_page_info(page_info):
             _page_num = page_info[key]
         if re.match('.*[sS][iI][zZ][eE].*', string=key):
             _page_size = page_info[key]
-    return  'limit ' + str((int(_page_num) - 1) * int(_page_size)) + ',' + str(_page_size)
+    return 'limit ' + str((int(_page_num) - 1) * int(_page_size)) + ',' + str(_page_size)

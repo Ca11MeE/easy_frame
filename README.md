@@ -7,3 +7,4 @@
   flask
   pymysql
   schedule
+  pyOpenSSL(可选)

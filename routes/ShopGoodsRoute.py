@@ -6,10 +6,14 @@ import boot
 # from controller import ShopGoodsController
 from annotation import AutoWired
 from properties import IOCProp
+"""
+蓝图DEMO
+author:CallMeE
+date:2018-06-01
+"""
 
 # 此处定义蓝图前缀
 url_prefix=None
-
 app = Blueprint('app',__name__,url_prefix=url_prefix)
 
 obj_list = IOCProp.obj_list

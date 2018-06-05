@@ -1,7 +1,26 @@
+# coding: utf-8
 # 自动注入修饰器
-'''
-显式参数注入
-'''
+"""
+自动注入注解
+author:CallMeE
+date:2018-06-01
+
+实现自动注入功能需在蓝图模块(也可以在其他位置)中定义方法(inject_obj)并添加下列两个注解之一
+DEMO;
+# 注入对象
+@AutoWired.InnerWired([ShopGoodsController.ShopGoodsController],a_w_list=['_SGCobj'],g=globals())
+或者
+@AutoWired.OuterWired(obj_list,g=globals())
+def inject_obj():
+    pass
+调用inject_obj()即可实现自动注入
+注意:
+1.a_w_list中的元素为注入引用名,必须要与注入目标引用名一致,否则注入失效
+2.注入位置必须显式定义一个值为None的引用,否则编译不通过
+"""
+
+
+# 显式参数注入
 def InnerWired(clz, g, a_w_list=[]):
     # print(locals())
     # 注入实例
@@ -43,9 +62,8 @@ def InnerWired(clz, g, a_w_list=[]):
 
     return wn
 
-'''
-自定义参数列表注入
-'''
+
+# 自定义参数列表注入
 def OuterWired(obj_obj, g):
     # 前期准备
     clz = []
@@ -95,11 +113,3 @@ def OuterWired(obj_obj, g):
         # return f
 
     return wn
-
-
-def get_obj(name):
-    print(globals())
-    try:
-        return globals()[name]
-    except:
-        return None;
