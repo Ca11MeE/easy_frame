@@ -233,7 +233,7 @@ class curObj:
                 # 回复分页状态
                 self.initial_page()
         except Exception as e:
-            self._db.commit()
+            self._db.rollback()
             print("执行出错,错误信息为:", e)
             return result
         # cursor.execute('select * from mw_system_member_level')

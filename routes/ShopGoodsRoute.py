@@ -60,3 +60,7 @@ def getGoodDetail():
 def getGoodIntroduction():
     result = _SGCobj.findGoodIntroduction(request.json['id'])
     return result
+
+@app.route('/',methods=['get'])
+def index():
+    return '<button>点击一下吧</button>'
