@@ -4,7 +4,7 @@ import mysql,os,re
 from mysql import Pool
 import properties
 
-# 定义容器(同时防止json以ascii解码返回)
+# 定义WEB容器(同时防止json以ascii解码返回)
 app=Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
@@ -14,12 +14,15 @@ def map_apps(dir_path):
 
     path=os.getcwd()+dir_path
     list=os.listdir(path)
+    print('蓝图文件夹:','.',dir_path)
     # list.remove('__pycache__')
-    while 0<len(list):
+    while list:
         try:
             file=list.pop(0)
-            print('加载',file)
-            f_model=__import__('routes.'+re.sub('\.py','',file),fromlist=True)
+            if file.startswith('__') and file.endswith('__'):
+                continue
+            print('加载蓝图模块:',file)
+            f_model=__import__(re.sub('/','',dir_path)+'.'+re.sub('\.py','',file),fromlist=True)
             app.register_blueprint(f_model.app)
         except:
             pass

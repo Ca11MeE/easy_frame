@@ -75,6 +75,7 @@ def OuterWired(obj_obj, g):
     # print(globals())
     # 注入实例
     def wn(f):
+        print('开始注入实例')
         # print(len(args))
         def inner_function(*args, **dic_args):
             # 获取数组
