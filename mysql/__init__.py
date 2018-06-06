@@ -356,6 +356,9 @@ def print_debug(methodName, sql, args, result):
     for r in result[1:]:
         print('=========>' + str(list(r.values())))
 
+
+from mysql import remote
+
 if '__main__' == __name__:
     # print('加载数据库模块')
     pool = Pool.Pool()
@@ -363,15 +366,15 @@ if '__main__' == __name__:
     obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
     obj.exe_sql_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
     obj.exe_sql_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
-    # obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
-    # # setObjUpdateRound(obj, '2')
-    # obj.exe_sql("findGoodsList")
-    #
-    # remote_cell = remote.getCell('ShopGoodsMapper.xml',
-    #                              remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
-    # remote_cell.reload_file_round(1)
-    # obj1 = getDbObj(remote_cell.getPath(), debug=True)
-    # obj1.insert_to_update_dispacther(3)
-    # obj1.exe_sql("findGoodsList")
+    obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
+    setObjUpdateRound(obj, '2')
+    obj.exe_sql("findGoodsList")
+
+    remote_cell = remote.getCell('ShopGoodsMapper.xml',
+                                 remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
+    remote_cell.reload_file_round(1)
+    obj1 = getDbObj(remote_cell.getPath(), debug=True)
+    obj1.insert_to_update_dispacther(3)
+    obj1.exe_sql("findGoodsList")
 
     # a=obj.exe_sql(methodName='findGoodIntroduction', args=('111'), pageInfo=None)

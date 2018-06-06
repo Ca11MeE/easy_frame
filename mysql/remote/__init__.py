@@ -1,5 +1,7 @@
 # coding: utf-8
 from mysql.remote import Cell
+import mysql
+import os
 
 """
 远程xml模块工厂
@@ -13,5 +15,5 @@ date:2018-06-01
 
 
 # 工厂模式获取远程细胞实例
-def getCell(file_name, remote_path):
-    return Cell.get_cell(file_name=file_name, remote_path=remote_path)
+def getCell(file_name, remote_path, read_only=False):
+    return Cell.get_cell(file_name=file_name, remote_path=remote_path, read_only=read_only)

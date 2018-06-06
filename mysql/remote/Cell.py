@@ -1,8 +1,7 @@
 # coding: utf-8
 from urllib import request
-import uuid, os, mysql, time
+import uuid, os, mysql, time, stat
 import mysql.binlog.Schued as schued
-
 
 """
 远程xml映射实例模板
@@ -16,11 +15,14 @@ date:2018-06-01
 demo:
 remote_cell = remote.getCell('ShopGoodsMapper.xml', remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
 obj1 = getDbObj(remote_cell.getPath(), debug=True)
+
+注意！！！
+read_only设置远程xml文件是否为只读，注意防止与自动增量更新冲突
 """
 
 
 class cell():
-    def __init__(self, file_name='', remote_path=''):
+    def __init__(self, file_name='', remote_path='', read_only=False):
         self._file_name = file_name
         self._remote_path = remote_path
         self._uid = uuid.uuid5(uuid.NAMESPACE_DNS, file_name)
@@ -38,14 +40,23 @@ class cell():
                 print('加载远程mapper：' + response[0])
                 # 放置路径
                 self._abs_path = response[0]
+                if read_only:
+                    self.lock_to_read()
                 break
-            except:
+            except Exception as e:
+                print(e)
                 print('连接远程计算机失败,请检查连接,3秒后重试(' + str(id(self)) + ')')
                 time.sleep(3)
 
     # 重新加载文件
     def reload_file(self):
-        response = request.urlretrieve(url=self._remote_path, filename=self._file_path + '/' + self._file_name)
+        # 放开写入权限
+        if self.is_only_read():
+            self.unlock_to_read()
+            response = request.urlretrieve(url=self._remote_path, filename=self._file_path + '/' + self._file_name)
+            self.lock_to_read()
+        else:
+            response = request.urlretrieve(url=self._remote_path, filename=self._file_path + '/' + self._file_name)
         print('加载远程mapper：' + response[0])
         # 放置路径
         self._abs_path = response[0]
@@ -66,6 +77,26 @@ class cell():
     def __str__(self):
         return self.getPath()
 
+    # 锁定文件为只读
+    def lock_to_read(self):
+        os.chmod(self._abs_path, stat.S_IREAD)
+
+    # 解除文件只读
+    def unlock_to_read(self):
+        os.chmod(self._abs_path, stat.S_IWRITE)
+
+    # 判断文件是否只读
+    def is_only_read(self):
+        try:
+            with open(self._abs_path, "r+") as fr:
+                return False
+        except IOError as e:
+            if "[Errno 13] Permission denied" in str(e):
+                return True
+            else:
+                print(str(e))
+                return False
+
 
 def sort_path(path_str):
     result = '/.mapper'
@@ -75,5 +106,5 @@ def sort_path(path_str):
 
 
 # 工厂模式获取实例
-def get_cell(file_name, remote_path):
-    return cell(file_name=file_name, remote_path=remote_path)
+def get_cell(file_name, remote_path, read_only):
+    return cell(file_name=file_name, remote_path=remote_path, read_only=read_only)
