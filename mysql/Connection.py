@@ -1,6 +1,6 @@
 # coding: utf-8
 # 连接包装类
-import pymysql
+import pymysql,properties
 
 """
 mysql连接实例(半成品)
@@ -11,16 +11,60 @@ author:CallMeE
 date:2018-06-01
 """
 
+namespace = [
+    '_host',
+    '_user',
+    '_password',
+    '_database',
+    '_port',
+    '_unix_socket',
+    '_charset',
+    '_sql_mode',
+    '_read_default_file',
+    '_conv',
+    '_use_unicode',
+    '_client_flag',
+    '_cursorclass',
+    '_init_command',
+    '_connect_timeout',
+    '_ssl',
+    '_read_default_group',
+    '_compress',
+    '_named_pipe',
+    '_no_delay',
+    '_autocommit',
+    '_db',
+    '_passwd',
+    '_local_infile',
+    '_max_allowed_packet',
+    '_defer_connect',
+    '_auth_plugin_map',
+    '_read_timeout',
+    '_write_timeout',
+    '_bind_address',
+    '_binary_prefix'
+]
+
 
 class Connection:
-    _host = 'bdm238721578.my3w.com'
-    _user = 'bdm238721578'
-    _pwd = 'ealohu31841'
-    _db = 'bdm238721578_db'
+    '''
+    数据库连接参数默认为连接本地root账户
 
-    def __init__(self, __host=_host, __user=_user, __pwd=_pwd, __db=_db):
+    目前只支持配置参数以及默认值:
+    _host = 'localhost'
+    _user = 'root'
+    _password = 'root'
+    _database = None
+    '''
+    _host = properties.pydc_host
+    _user = properties.pydc_user
+    _password = properties.pydc_password
+    _database = properties.pydc_database
+
+    def __init__(self, __host=_host, __user=_user, __password=_password, __database=_database, __charset='utf8'):
         # print('初始化连接')
-        self._db = pymysql.connect(__host, __user, __pwd, __db, charset='utf8')
+        self._db = pymysql.connect(host=__host, user=__user, password=__password, database=__database,
+                                   charset=__charset)
         # self._db = pymysql.connect('localhost', 'root', 'wo4ce4kumima', 'agymall_db', charset='utf8')
 
     def getConnect(self):
@@ -36,3 +80,11 @@ class Connection:
     def reConn(self):
         # print('重连接')
         self._db = pymysql.connect(self._host, self._user, self._pwd, self._db, charset='utf8')
+
+#
+# a=None
+#
+# if not a:
+#     print('t')
+# else:
+#     print('f')

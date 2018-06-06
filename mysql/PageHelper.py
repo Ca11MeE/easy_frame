@@ -19,7 +19,7 @@ date:2018-06-01
 
 # 打包分页信息
 def pkg_page_info(page_num=1, page_size=1, page_model=[]):
-    if 0 >= len(page_model):
+    if not page_model:
         # print(locals())
         return locals()
     else:

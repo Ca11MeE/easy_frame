@@ -60,6 +60,3 @@ class Mapper:
         #     description = movie.getElementsByTagName('description')[0]
         #     print("Description: %s" % description.childNodes[0].data)
 
-
-if '__main__' == __name__:
-    Mapper().openDom('mapper.xml')

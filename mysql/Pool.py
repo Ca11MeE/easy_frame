@@ -31,7 +31,7 @@ class Pool():
     # 定义取出连接
     def getConn(self):
         __pool = self._pool
-        if 0 < len(__pool):
+        if __pool:
             currConn = __pool.pop(0)
             if currConn.testConn():
                 # 连接有效

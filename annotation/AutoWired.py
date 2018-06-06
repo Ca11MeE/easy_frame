@@ -30,15 +30,15 @@ def InnerWired(clz, g, a_w_list=[]):
             # 获取数组
             # print(args)
             # print(dic_args)
-            if a_w_list is not None and 0 < len(a_w_list):
+            if a_w_list and 0 < len(a_w_list):
                 # 装饰器参数查找赋值
                 a_name = a_w_list
             else:
-                if dic_args['a_w_list'] is not None and 0 < dic_args['a_w_list']:
+                if dic_args['a_w_list'] and 0 < dic_args['a_w_list']:
                     # 被装饰函数关键字参数查找赋值
                     a_name = dic_args['a_w_list']
                 else:
-                    if 0 >= len(args):
+                    if not args:
                         raise Exception('动态形参为空!!')
                     # 被装饰函数位置参数查找赋值
                     a_name = args[0]
@@ -80,15 +80,15 @@ def OuterWired(obj_obj, g):
             # 获取数组
             # print(args)
             # print(dic_args)
-            if a_w_list is not None and 0 < len(a_w_list):
+            if a_w_list and 0 < len(a_w_list):
                 # 装饰器参数查找赋值
                 a_name = a_w_list
             else:
-                if dic_args['a_w_list'] is not None and 0 < dic_args['a_w_list']:
+                if dic_args['a_w_list']:
                     # 被装饰函数关键字参数查找赋值
                     a_name = dic_args['a_w_list']
                 else:
-                    if 0 >= len(args):
+                    if not args:
                         raise Exception('动态形参为空!!')
                     # 被装饰函数位置参数查找赋值
                     a_name = args[0]

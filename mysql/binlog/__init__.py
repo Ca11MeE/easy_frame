@@ -28,7 +28,7 @@ class BinCache():
         else:
             print('文件发生增量更新(' + self._file + ')')
             # 执行增量更新方法
-            if self._false_fun is None:
+            if not self._false_fun:
                 # def_false_fun(self._file)
                 pass
             else:

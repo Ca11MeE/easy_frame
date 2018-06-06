@@ -71,7 +71,7 @@ class curObj:
         # self._conn = __conn
         # self._db = __conn.getConnect()
         try:
-            if self._db is None:
+            if not self._db:
                 # 无连接,需要获取连接
                 # print('没有发现连接,尝试获取连接')
                 if self._poolFlag:
@@ -101,7 +101,7 @@ class curObj:
 
     def set_cursor(self):
         # 初始化指针(如果不存在指针)
-        if self._cursor is None:
+        if not self._cursor:
             self._cursor = self._db.cursor()
 
     # 获取sql语句(包含处理)
@@ -117,7 +117,7 @@ class curObj:
         if self._page:
             # 分页
             _sql = _sql + 'limit ' + str((self._pageNum - 1) * self._pageSize) + ',' + str(self._pageSize)
-        if pageInfo is not None:
+        if pageInfo:
             # print(pageInfo)
             # print(pageInfo['pageNum'])
             # print(pageInfo['pageSize'])
@@ -125,7 +125,7 @@ class curObj:
             _sql = _sql + PageHelper.depkg_page_info(pageInfo)
         # print(_sql)
         # 判断是否骨架拼接
-        if args is not None and 0 < len(args):
+        if args:
             _sql = _sql % args[:]
         # 去除注释与空格,换行等
         __sql = re.sub('\\s+', ' ', re.sub('<!--.*-->', ' ', _sql))
@@ -149,9 +149,12 @@ class curObj:
     若其中有重复方法,建议用分割版
     """
     def exe_sql_obj_queue(self,queue_obj={}):
-        print(queue_obj)
-        methods=list(queue_obj.keys())
-        args=list(queue_obj.values())
+        if queue_obj:
+            methods=list(queue_obj.keys())
+            args=list(queue_obj.values())
+            self.exe_sql_queue(method_queue=methods,args_queue=args)
+        else:
+            raise Exception('queue_obj参数不正确')
 
     # 批量执行语句(拆分版)
     """
@@ -161,10 +164,10 @@ class curObj:
     """
     def exe_sql_queue(self,method_queue=[],args_queue=[]):
         # 参数检查
-        if 0 >= len(method_queue):
+        if not method_queue:
             raise Exception('语句方法为空')
             return
-        if 0 >= len(args_queue):
+        if not args_queue:
             raise Exception('语句参数列表为空')
             return
         self.check_conn()
@@ -173,7 +176,7 @@ class curObj:
             # 开启事务
             # self._db.begin()
             # 批量取语句(以方法名为准,多于参数队列元素将丢弃)
-            while 0<len(method_queue):
+            while method_queue:
                 method=method_queue.pop(0)
                 args=args_queue.pop(0)
                 """
@@ -203,7 +206,7 @@ class curObj:
     # 防报错参数设定默认值
     def exe_sql(self, methodName='', pageInfo=None, args=()):
         # 参数检查
-        if 0>=len(re.sub('\s+','',methodName)):
+        if not re.sub('\s+','',methodName):
             raise Exception('语句方法为空')
             return
         self.check_conn()
@@ -212,7 +215,7 @@ class curObj:
         result = []
         try:
             # print(pageInfo)
-            if pageInfo is not None and type(pageInfo) is type({}):
+            if pageInfo and type(pageInfo) is type({}):
                 _sql = self.get_sql(methodName=methodName, pageInfo=pageInfo, args=args)
             else:
                 _sql = self.get_sql(methodName=methodName, args=args, pageInfo=None)
@@ -325,9 +328,14 @@ def getDbObj(path, debug=False):
     if pool is None:
         raise Exception('连接池未定义')
     if 0 >= pool.size():
-        # 初始5个连接
         # 配置属性生命周期过短,拟用__import__导入减轻内存废址
-        pool.initPool(5, Connection.Connection)
+        prop = __import__('properties')
+        if hasattr(prop,'pool_conn_num'):
+            pool.initPool(getattr(prop,'pool_conn_num'), Connection.Connection)
+        else:
+            # 初始5个连接
+            pool.initPool(5, Connection.Connection)
+
     return curObj(pool, path, True, debug)
 
 
@@ -349,12 +357,12 @@ def print_debug(methodName, sql, args, result):
         print('=========>' + str(list(r.values())))
 
 if '__main__' == __name__:
-    print('加载数据库模块')
+    # print('加载数据库模块')
     pool = Pool.Pool()
-    print('加载完毕')
-    # obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
-    # obj.exe_sql_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
-    # obj.exe_sql_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
+    # print('加载完毕')
+    obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
+    obj.exe_sql_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
+    obj.exe_sql_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
     # obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
     # # setObjUpdateRound(obj, '2')
     # obj.exe_sql("findGoodsList")
