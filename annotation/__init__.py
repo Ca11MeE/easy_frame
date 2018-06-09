@@ -8,10 +8,10 @@ author:CallMeE
 date:2018-06-01
 
 
-json形式返回数据修饰器(跳过视图解析器)
 """
 
-
+# 响应返回数据修饰器(跳过视图解析器)
+# 响应体形式返回
 def ResponseBody():
     def method(f):
         @functools.wraps(f)
@@ -26,3 +26,12 @@ def ResponseBody():
         return arg
 
     return method
+
+# 处理请求参数装饰器
+# 表单形式数据
+def as_form():
+    pass
+
+# json形式数据
+def as_json():
+    pass
