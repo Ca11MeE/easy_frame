@@ -2,7 +2,6 @@
 from flask import jsonify, request
 import functools
 import sys
-import os
 
 """
 注解集合(部分)
@@ -32,7 +31,6 @@ def ResponseBody():
 
 
 # 处理请求参数装饰器
-# 表单形式数据
 def AutoParam(kwarg_list=[]):
     def method(f):
         # print(locals())
