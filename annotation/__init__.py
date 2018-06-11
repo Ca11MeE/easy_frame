@@ -1,5 +1,5 @@
 # coding: utf-8
-from flask import jsonify, request
+from flask import jsonify, request,abort
 import functools
 import sys
 
@@ -35,16 +35,33 @@ def AutoParam(kwarg_list=[]):
     def method(f):
         # print(locals())
         @functools.wraps(f)
-        def args():
-            if 'GET' == str(request.method):
-                return is_get(f,request,kwarg_list)
-            elif 'POST' == str(request.method):
-                return is_post(f, request, kwarg_list)
-            else:
-                sys.stderr.write('方法不支持!!')
+        def args(*args,**kwargs):
+            try:
+                if 'GET' == str(request.method):
+                    return is_get(f,request,kwarg_list)
+                elif 'POST' == str(request.method):
+                    return is_post(f, request, kwarg_list)
+                else:
+                    sys.stderr.write('方法不支持!!')
+            except TypeError as t_e:
+                sys.stderr.write('参数不匹配!!,msg:'+ repr(t_e))
+                return abort(500)
         return args
 
     return method
+
+# 路径绑定装饰器
+# 默认服务器从boot获取
+# (自带参数自动装载) <------暂未完成
+def RequestMapping(app,path,methods):
+    print(locals())
+    def method(f):
+        result = app.route(path, methods=methods)(f)
+        def args(*args,**kwargs):
+            return result(*args,**kwargs)
+        return args
+    return method
+
 
 def is_get(f,r,kw_list):
     r_arg = ()
