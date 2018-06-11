@@ -14,8 +14,10 @@ date:2018-06-01
 
 # 响应返回数据修饰器(跳过视图解析器)
 # 响应体形式返回
+# (自带AutoParam) <------暂未完成
 def ResponseBody():
     def method(f):
+        @AutoParam()
         @functools.wraps(f)
         def arg(*args, **kwargs):
             # print(args)
@@ -52,7 +54,6 @@ def AutoParam(kwarg_list=[]):
 
 # 路径绑定装饰器
 # 默认服务器从boot获取
-# (自带参数自动装载) <------暂未完成
 def RequestMapping(app,path,methods):
     print(locals())
     def method(f):

@@ -11,8 +11,8 @@ def a_b():
     return method
 
 def a_a(c,d):
-    @a_b()
     def method(f):
+        @a_b()
         def args(*args,**kwargs):
             print('a_a执行')
             print('a_a无参参数',args)

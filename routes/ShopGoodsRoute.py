@@ -35,9 +35,9 @@ inject_obj()
 
 
 # 获取顶部标题栏
-@app.route('/tabs', methods=['GET', 'POST'])
-# @annotation.RequestMapping(app=app,path='/tabs',methods=['GET', 'POST'])
-@annotation.AutoParam()
+# @app.route('/tabs', methods=['GET', 'POST'])
+@annotation.RequestMapping(app=app,path='/tabs',methods=['GET', 'POST'])
+# @annotation.AutoParam()
 @annotation.ResponseBody()
 def hello(a, b):
     print(a)
