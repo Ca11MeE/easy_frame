@@ -31,6 +31,14 @@ def ResponseBody():
 
     return method
 
+# 返回web模板
+def BindTemplate():
+    def method(f):
+        def args(*args,**kwargs):
+            pass
+        return args
+    return method
+
 
 # 处理请求参数装饰器
 def AutoParam(kwarg_list=[]):
