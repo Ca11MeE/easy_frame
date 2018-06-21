@@ -17,14 +17,15 @@ date:2018-06-01
 url_prefix = None
 app = Blueprint('app', __name__, url_prefix=url_prefix)
 
-obj_list = IOCProp.obj_list
+shop_good_rou = IOCProp.shop_good_rou
 
 _SGCobj = None
+_SGBobj=None
 
 
 # 注入对象
 # @AutoWired.InnerWired([ShopGoodsController.ShopGoodsController],a_w_list=['_SGCobj'],g=globals())
-@AutoWired.OuterWired(obj_list, g=globals())
+@AutoWired.OuterWired(shop_good_rou, g=globals())
 def inject_obj():
     # for name in obj_list.keys():
     #     globals()[name]=AutoWired.get_obj(name)
@@ -39,9 +40,9 @@ inject_obj()
 @annotation.RequestMapping(app=app,path='/tabs',methods=['GET', 'POST'])
 # @annotation.AutoParam()
 @annotation.ResponseBody()
-def hello(a, b):
-    print(a)
-    print(b)
+def hello():
+    # print(a)
+    # print(b)
     result = _SGCobj.getHeadTitle()
     return result
 
@@ -50,27 +51,35 @@ def hello(a, b):
 @app.route('/shop/goods/list', methods=['post'])
 @annotation.AutoParam()
 @annotation.ResponseBody()
-def getShopGoodsList(page, pageSize):
-    result = _SGCobj.findGoodsList(page, pageSize)
+def getShopGoodsList(storeId):
+    result = [_SGCobj.findGoodsList(cay_name='桶装水',store_id=storeId),_SGCobj.findGoodsList(cay_name='支装水',store_id=storeId),_SGCobj.findGoodsList(cay_name='空桶',store_id=storeId),_SGCobj.findGoodsList(cay_name='其他',store_id=storeId)]
     return result
 
 
 # 获取商品详细信息
 @app.route('/shop/goods/detail', methods=['post'])
+@annotation.AutoParam()
 @annotation.ResponseBody()
-def getGoodDetail():
-    result = _SGCobj.findGoodDetail(request.json['id'])
+def getGoodDetail(id):
+    result = _SGCobj.findGoodDetail(id)
     return result
 
 
 # 获取商品描述
 @app.route('/shop/goods/introduction', methods=['post'])
+@annotation.AutoParam()
 @annotation.ResponseBody()
-def getGoodIntroduction():
-    result = _SGCobj.findGoodIntroduction(request.json['id'])
+def getGoodIntroduction(id):
+    result = _SGCobj.findGoodIntroduction(id)
     return result
 
 
 @app.route('/', methods=['get'])
 def index():
     return '<button>点击一下吧</button>'
+
+@app.route('/test', methods=['POST'])
+@annotation.FullParam(kwarg_list=['args'])
+@annotation.ResponseBody()
+def test(args):
+    return 'hello'+str(args)

@@ -60,10 +60,11 @@ class Connection:
     _user = properties.pydc_user
     _password = properties.pydc_password
     _database = properties.pydc_database
+    _port = properties.pydc_port
 
-    def __init__(self, __host=_host, __user=_user, __password=_password, __database=_database, __charset='utf8'):
+    def __init__(self, __host=_host,__port=_port, __user=_user, __password=_password, __database=_database, __charset='utf8'):
         # print('初始化连接')
-        self._db = pymysql.connect(host=__host, user=__user, password=__password, database=__database,
+        self._db = pymysql.connect(host=__host,port=__port, user=__user, password=__password, database=__database,
                                    charset=__charset)
         # self._db = pymysql.connect('localhost', 'root', 'wo4ce4kumima', 'agymall_db', charset='utf8')
 
@@ -79,7 +80,7 @@ class Connection:
 
     def reConn(self):
         # print('重连接')
-        self._db = pymysql.connect(self._host, self._user, self._pwd, self._db, charset='utf8')
+        self._db = pymysql.connect(self._host,self._port, self._user, self._pwd, self._db, charset='utf8')
 
 #
 # a=None

@@ -1,6 +1,7 @@
 # coding: utf-8
 import reader
 from mysql import Pool, Connection, PageHelper
+import threading
 import os
 import re
 import mysql.binlog
@@ -14,7 +15,8 @@ from mysql.binlog import Schued
     (完成)2.2远程binlog处理对比
 (半完成)3.binlog生成算法以及对比算法以及增量写入
 (完成)4.细粒度事务控制
-5.配置文件配置连接数
+(完成)5.配置文件配置连接数
+(完成)6.参照mybatis完成sql骨架拼写
 
 
 单条语句执行demo:
@@ -109,7 +111,7 @@ class curObj:
         # 单独连接实例化
         # 判断是否存在子节点
         if methodName not in self._sqls:
-            raise Exception('没有该方法!!!')
+            raise Exception('没有该方法!method:'+str(methodName))
         _sql = self._sqls[methodName]
         # 判断是否分页(总开关)
         # 开启之后该实例所有语句都认为是 需要分页
@@ -126,9 +128,27 @@ class curObj:
         # print(_sql)
         # 判断是否骨架拼接
         if args:
-            _sql = _sql % args[:]
+            # print(type(args))
+            # 检查骨架实参传入类型,并作不同处理
+            if type(args) is type(()):
+                if re.match(r'(\#|\$)\{.*\}',_sql):
+                    raise Exception('骨架与参数不匹配')
+                _sql = _sql % args[:]
+            elif type(args) is type({}):
+                for key in args.keys():
+                    reg_str=r'(\#|\$)\{'+str(key)+'\}'
+                    if not re.search(reg_str,_sql):
+                        raise Exception('存在无法配对的骨架参数')
+                    else:
+                        _sql=re.sub('\#\{'+str(key)+'\}','\''+str(args[key])+'\'',re.sub('\$\{'+str(key)+'\}',str(args[key]),_sql))
+            else:
+                try:
+                    _sql = _sql % args[:]
+                except Exception as e:
+                    print(e)
         # 去除注释与空格,换行等
         __sql = re.sub('\\s+', ' ', re.sub('<!--.*-->', ' ', _sql))
+        # print(_sql)
         return __sql
 
     # 设定分页信息
@@ -183,7 +203,7 @@ class curObj:
                 对于增改查来说,并不需要分页,参数列表是必须的
                 """
                 _sql=self.get_sql(methodName=method,args=args,pageInfo=None)
-                print(self._cursor)
+                # print(self._cursor)
                 # 执行sql语句
                 self._cursor.execute(_sql)
                 # 调试模式打印语句
@@ -205,6 +225,8 @@ class curObj:
     # 执行单条语句
     # 防报错参数设定默认值
     def exe_sql(self, methodName='', pageInfo=None, args=()):
+        lock=threading.Lock()
+        lock.acquire(blocking=True)
         # 参数检查
         if not re.sub('\s+','',methodName):
             raise Exception('语句方法为空')
@@ -219,6 +241,7 @@ class curObj:
                 _sql = self.get_sql(methodName=methodName, pageInfo=pageInfo, args=args)
             else:
                 _sql = self.get_sql(methodName=methodName, args=args, pageInfo=None)
+            # print(_sql)
         except Exception as ex:
             print(ex)
             return result
@@ -233,7 +256,13 @@ class curObj:
                 # 回复分页状态
                 self.initial_page()
         except Exception as e:
-            self._db.rollback()
+            # 为了保障新增以及修改的操作可以生效而提交事务
+            if 'select' not in _sql and 'SELECT' not in _sql:
+                # print('不是查询!!')
+                self._db.rollback()
+            else:
+                # 回复分页状态
+                self.initial_page()
             print("执行出错,错误信息为:", e)
             return result
         # cursor.execute('select * from mw_system_member_level')
@@ -255,6 +284,7 @@ class curObj:
         # 调试模式语句执行信息打印
         if self._debug:
             print_debug(methodName=methodName, args=args, sql=_sql, result=result)
+        lock.release()
         return result
 
     def close(self):
@@ -350,11 +380,15 @@ def print_debug(methodName, sql, args, result):
     print('METHOD:==>' + methodName)
     print('SQL:=====>' + sql)
     print('PARAMS:==>' + str(args))
-    # 拿出列名
-    print('ROWS:====>' + str(list(result[0].keys())))
-    print('RESULT:==>' + str(list(result[0].values())))
-    for r in result[1:]:
-        print('=========>' + str(list(r.values())))
+    if result and result[0]:
+        # 拿出列名
+        print('ROWS:====>' + str(list(result[0].keys())))
+        print('RESULT:==>' + str(list(result[0].values())))
+        for r in result[1:]:
+            print('=========>' + str(list(r.values())))
+    else:
+        print('ROWS:====>None')
+        print('RESULT:==>None')
 
 
 from mysql import remote
@@ -363,18 +397,25 @@ if '__main__' == __name__:
     # print('加载数据库模块')
     pool = Pool.Pool()
     # print('加载完毕')
-    obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
-    obj.exe_sql_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
-    obj.exe_sql_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
+    # obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
+    # obj.exe_sql_obj_queue(queue_obj={"test":(1,2),"test":(2,3)})
+    # obj.exe_sql_queue(method_queue=['test','test','test_s','test','test'],args_queue=[('1','2'),('2','3'),(),('3','4'),('3','4')])
     obj = getDbObj(project_path + '/mappers/ShopGoodsMapper.xml')
-    setObjUpdateRound(obj, '2')
-    obj.exe_sql("findGoodsList")
+    # setObjUpdateRound(obj, '2')
+    # obj.exe_sql("findGoodsList")
+    print(obj.exe_sql("test",args={'id':1}))
+    #
+    # result=obj.exe_sql(methodName='findGoodIntroduction', args=('00531f90-2020-11e8-bfad-00163e0435bc'), pageInfo=None)
+    # print(result)
 
-    remote_cell = remote.getCell('ShopGoodsMapper.xml',
-                                 remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
-    remote_cell.reload_file_round(1)
-    obj1 = getDbObj(remote_cell.getPath(), debug=True)
-    obj1.insert_to_update_dispacther(3)
-    obj1.exe_sql("findGoodsList")
+    # remote_cell = remote.getCell('ShopGoodsMapper.xml',
+    #                              remote_path='http://127.0.0.1:8400/member/export/xml/ShopGoodsMapper.xml')
+    # remote_cell.reload_file_round(1)
+    # obj1 = getDbObj(remote_cell.getPath(), debug=True)
+    # obj1.insert_to_update_dispacther(3)
+    # obj1.exe_sql("findGoodsList")
 
     # a=obj.exe_sql(methodName='findGoodIntroduction', args=('111'), pageInfo=None)
+
+
+

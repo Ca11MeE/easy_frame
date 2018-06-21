@@ -21,7 +21,7 @@ date:2018-06-01
 def pkg_page_info(page_num=1, page_size=1, page_model=[]):
     if not page_model:
         # print(locals())
-        return locals()
+        return {'page_num':locals()['page_num'],'page_size':locals()['page_size']}
     else:
         page_info = {}
         # 选取对应key写入数据

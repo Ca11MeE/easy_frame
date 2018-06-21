@@ -3,45 +3,64 @@
 <mapper>
     <select id="findGoodsList">
         SELECT
-        assg.id,
-        assg.name,
-        FORMAT((assg.original_price / 100),2) AS minPrice,
-        CONCAT('http://shop-img.agymall.com/shopGoods/Img/',asgi.`image_url`) AS pic
-        FROM agy_shop_store_goods assg
-        LEFT JOIN
-        agy_shop_goods_image asgi
-        ON asgi.`goods_id`=assg.`id`
-        WHERE
-        asgi.`type`='MAINIMG'
+        msg.id,
+		g.name,
+        FORMAT((g.original_price/100),2) as min_price,
+		gca. NAME AS categories_name,
+		gc. NAME AS category_name,
+		gb.NAME AS brand_name,
+		mc.name AS company_name,
+		CONCAT('http://shop-img.agymall.com/water/big/',mgi.image_url) AS pic
+		FROM
+		mw_goods g
+		LEFT JOIN mw_store_goods msg ON msg.`goods_id`=g.id
+		LEFT JOIN mw_goods_categories gca ON g.categories_id = gca.id
+		LEFT JOIN mw_goods_category gc ON g.category_id = gc.id
+		LEFT JOIN mw_goods_brand gb ON g.brand_id = gb.id
+		LEFT JOIN mw_company mc ON g.company_id=mc.id
+		LEFT JOIN mw_goods_image mgi ON mgi.`goods_id`=g.id
+		WHERE
+		g.is_del = '0'
+		AND
+		mgi.`type`='BIG'
         AND
-        assg.`is_del`='0'
+        gc. NAME='%s'
         AND
-        asgi.`is_del`='0'
+        msg.store_id='%s'
     </select>
 
     <select id="findGoodDetail">
         SELECT
-  GROUP_CONCAT(
-    CONCAT(
-      'http://shop-img.agymall.com/shopGoods/Img/',
-      asgi.`image_url`
-    )
-  ) as imgs,
-  assg.`name`,
-  FORMAT((assg.`original_price` / 100),2) as original_price,
-  FORMAT((assg.`present_price` / 100),2) as present_price,
-  FORMAT((assg.`stock_sum` / 100),2) as stock_sum
-FROM
-  agy_shop_store_goods assg
-  LEFT JOIN agy_shop_goods_image asgi
-    ON asgi.`goods_id` = assg.`id`
-WHERE assg.id = '%s'
-  AND asgi.`type` = 'GOODSIMG'
-  AND assg.`is_del` = '0'
-  AND asgi.`is_del` = '0'
-GROUP BY assg.id
+          msg.id AS id,
+          msg.store_id AS store_id,
+          ms.store_type AS store_type,
+          ms.member_id AS member_id,
+          msg.category_id AS category_id,
+          msg.goods_id AS goods_id,
+          mg.name,
+          msg.present_price AS min_price,
+          msg.discount AS discount,
+          msg.specification AS specification,
+          msg.company AS company,
+          mg.introduction AS introduction,
+          msg.is_reclaim AS is_reclaim,
+          GROUP_CONCAT(CONCAT('http://shop-img.agymall.com/water/small/',mgi.image_url)) AS imgs
+        FROM
+          mw_store_goods msg
+          LEFT JOIN mw_goods mg
+            ON msg.goods_id = mg.id
+          LEFT JOIN mw_store ms
+            ON msg.store_id = ms.id
+            LEFT JOIN mw_goods_image mgi
+            ON mgi.`goods_id`=msg.`goods_id`
+        WHERE msg.is_del = '0'
+		AND
+		msg.id= '%s'
+        AND
+        mgi.type='SMALL'
+        GROUP BY msg.id
     </select>
     <select id="findGoodIntroduction">
-        select introduction from agy_shop_store_goods where id='%s'
+        SELECT introduction FROM mw_goods mg LEFT JOIN mw_store_goods msg ON msg.goods_id=mg.`id` WHERE id='%s'
     </select>
 </mapper>
