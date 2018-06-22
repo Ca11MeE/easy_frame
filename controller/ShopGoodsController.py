@@ -6,7 +6,7 @@ from mysql import PageHelper
 
 class ShopGoodsController:
     def __init__(self):
-        self.cursor = mysql.getDbObj(mysql.project_path + '/mappers/ShopGoodsMapper.xml',debug=True)
+        self.cursor = mysql.getDbObj(mysql.project_path + '/mappers/ShopGoodsMapper.xml',debug=False)
         self.head_title_cursor = mysql.getDbObj(mysql.project_path + '/mappers/HeadTitle.xml')
         mysql.setObjUpdateRound(self.cursor, 1)
         mysql.setObjUpdateRound(self.head_title_cursor, 1)

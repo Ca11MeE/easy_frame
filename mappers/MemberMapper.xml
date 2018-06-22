@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper>
+    <select id="findUserByCode">
+        select * from mw_member where wechat_id='%s'
+    </select>
+    <select id="findUserByAccount">
+        select password from mw_member where account='%s'
+    </select>
+    <select id="findOneByAccount">
+        select * from mw_member where account=#{mobile}
+    </select>
+    <update id="saveWxIdByAccount">
+        update
+        mw_member
+        set
+        wechat_id=#{wechat_id}
+        where
+        id=#{id}
+    </update>
+</mapper>

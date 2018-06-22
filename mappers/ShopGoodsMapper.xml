@@ -61,6 +61,6 @@
         GROUP BY msg.id
     </select>
     <select id="findGoodIntroduction">
-        SELECT introduction FROM mw_goods mg LEFT JOIN mw_store_goods msg ON msg.goods_id=mg.`id` WHERE id='%s'
+        SELECT introduction FROM mw_goods mg LEFT JOIN mw_store_goods msg ON msg.goods_id=mg.`id` WHERE msg.id='%s'
     </select>
 </mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper>
+    <select id="findGoodsBarrelList">
+        SELECT
+		g.name,
+        FORMAT((g.original_price/100),2) as min_price,
+		gca. NAME AS categories_name,
+		gc. NAME AS category_name,
+		gb.NAME AS brand_name,
+		mc.name AS company_name,
+		CONCAT('http://shop-img.agymall.com/water/big/',mgi.image_url) AS pic
+		FROM
+		mw_goods g
+		LEFT JOIN mw_store_goods msg ON msg.`goods_id`=g.id
+		LEFT JOIN mw_goods_categories gca ON g.categories_id = gca.id
+		LEFT JOIN mw_goods_category gc ON g.category_id = gc.id
+		LEFT JOIN mw_goods_brand gb ON g.brand_id = gb.id
+		LEFT JOIN mw_company mc ON g.company_id=mc.id
+		LEFT JOIN mw_goods_image mgi ON mgi.`goods_id`=g.id
+		WHERE
+		g.is_del = '0'
+		AND
+		mgi.`type`='BIG'
+        AND
+        gc. NAME='%s'
+        AND
+        msg.store_id='%s'
+    </select>
+</mapper>

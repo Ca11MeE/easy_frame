@@ -112,8 +112,6 @@ def FullParam(kwarg_list=[]):
 # 路径绑定装饰器
 # 默认服务器从boot获取
 def RequestMapping(app, path, methods):
-    print(locals())
-
     def method(f):
         result = app.route(path, methods=methods)(f)
 

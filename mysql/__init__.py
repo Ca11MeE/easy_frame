@@ -138,9 +138,17 @@ class curObj:
                 for key in args.keys():
                     reg_str=r'(\#|\$)\{'+str(key)+'\}'
                     if not re.search(reg_str,_sql):
-                        raise Exception('存在无法配对的骨架参数')
+                        '''
+                        此处有几种情况:
+                        1.语句骨架不存在该key的空位(多余参数)
+                        2.骨架参数与骨架不对应(多余空位)
+                        '''
+                        pass
                     else:
                         _sql=re.sub('\#\{'+str(key)+'\}','\''+str(args[key])+'\'',re.sub('\$\{'+str(key)+'\}',str(args[key]),_sql))
+                 # 多余空位检查
+                if re.search('(\#|\$)\{'+str(key)+'\}',_sql):
+                    raise Exception('存在无法配对的骨架参数')
             else:
                 try:
                     _sql = _sql % args[:]
@@ -248,30 +256,42 @@ class curObj:
         try:
             # 试执行语句
             self._cursor.execute(_sql)
-            # 为了保障新增以及修改的操作可以生效而提交事务
-            if 'select' not in _sql and 'SELECT' not in _sql:
-                # print('不是查询!!')
-                self._db.commit()
-            else:
-                # 回复分页状态
-                self.initial_page()
+            self._db.commit()
+            self.initial_page()
+            '''
+            下列代码弃用是因为查询事务不提交会导致查询数据为历史数据,
+            同时查询事务会导致重复读（REPEATABLE READ）表锁生效,需要提交事务消除表行锁
+            '''
+            # 为了保障新增以及修改的操作可以生效而提交事务(暂弃)
+            # if 'select' not in _sql and 'SELECT' not in _sql:
+            #     # print('不是查询!!')
+            #     self._db.commit()
+            # else:
+            #     # 回复分页状态
+            #     self.initial_page()
         except Exception as e:
-            # 为了保障新增以及修改的操作可以生效而提交事务
-            if 'select' not in _sql and 'SELECT' not in _sql:
-                # print('不是查询!!')
-                self._db.rollback()
-            else:
-                # 回复分页状态
-                self.initial_page()
+            self._db.rollback()
+            self.initial_page()
+            # 为了保障新增以及修改的操作可以生效而提交事务(暂弃)
+            # if 'select' not in _sql and 'SELECT' not in _sql:
+            #     # print('不是查询!!')
+            #     self._db.rollback()
+            # else:
+            #     # 回复分页状态
+            #     self.initial_page()
             print("执行出错,错误信息为:", e)
             return result
         # cursor.execute('select * from mw_system_member_level')
+        if 'select' not in _sql and 'SELECT' not in _sql:
+            data=[[self._cursor.rowcount]]
+            description=[['row_count']]
+        else:
 
-        data = self._cursor.fetchall()
+            data = self._cursor.fetchall()
 
-        # print(data)
+            # print(data)
 
-        description = self._cursor.description
+            description = self._cursor.description
 
         # print(description)
 
@@ -285,6 +305,9 @@ class curObj:
         if self._debug:
             print_debug(methodName=methodName, args=args, sql=_sql, result=result)
         lock.release()
+        # 非查询语句返回影响行数
+        if 'select' not in _sql and 'SELECT' not in _sql:
+            return data[0][0]
         return result
 
     def close(self):
@@ -395,6 +418,7 @@ from mysql import remote
 
 if '__main__' == __name__:
     # print('加载数据库模块')
+    print(len('bacdca7402e6206fce8a32ede4d1b247ca318537'))
     pool = Pool.Pool()
     # print('加载完毕')
     # obj=getDbObj(path=project_path +'/mysql/test.xml',debug=True)
